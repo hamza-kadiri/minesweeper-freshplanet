@@ -11,7 +11,6 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Grid from '@material-ui/core/Grid';
 import Avatar from '@material-ui/core/Avatar';
-import { GameContext } from '../board/Board';
 
 export default class Header extends Component {
   render() {
