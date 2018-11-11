@@ -1,10 +1,14 @@
 /* eslint-disable no-nested-ternary */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import { Grid, Paper } from '@material-ui/core';
 import propTypes from 'prop-types';
 import './Cell.css';
 
-export default class Cell extends Component {
+export default class Cell extends PureComponent {
+  componentDidUpdate() {
+    console.log(this.props.x, this.props.y);
+  }
+
   handleClick = e => {
     const { handleCellClick } = this.props;
     const x = parseInt(e.currentTarget.getAttribute('x'), 10);
