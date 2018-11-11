@@ -17,7 +17,7 @@ export default class Cell extends PureComponent {
   };
 
   render() {
-    const { x, y, mined, clicked } = this.props;
+    const { x, y, mined, clicked, adjacentMines } = this.props;
     return (
       <Grid item>
         <Paper
@@ -32,7 +32,17 @@ export default class Cell extends PureComponent {
               : { background: 'light-grey' }
           }
           onClick={this.handleClick}
-        />
+        >
+          {clicked ? (
+            mined ? (
+              <span role="img" aria-label="bomb">
+                💣
+              </span>
+            ) : adjacentMines > 0 ? (
+              <div>{adjacentMines}</div>
+            ) : null
+          ) : null}
+        </Paper>
       </Grid>
     );
   }
@@ -44,4 +54,5 @@ Cell.propTypes = {
   mined: propTypes.bool.isRequired,
   clicked: propTypes.bool.isRequired,
   handleCellClick: propTypes.func.isRequired,
+  adjacentMines: propTypes.number.isRequired,
 };
