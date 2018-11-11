@@ -1,6 +1,5 @@
 .cell {
-  background: rgba(177, 177, 177, 0.596);
-  border: 1px solid #999;
+  border: 1px solid #3f51b5;
   float: left;
   font-size: 24px;
   font-weight: bold;

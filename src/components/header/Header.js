@@ -1,24 +1,28 @@
 import React, { Component } from 'react';
+import propTypes from 'prop-types';
 import './Header.css';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import FlagIcon from '@material-ui/icons/Flag';
 import TimerIcon from '@material-ui/icons/Timer';
+import RestartIcon from '@material-ui/icons/Autorenew';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Grid from '@material-ui/core/Grid';
 import Avatar from '@material-ui/core/Avatar';
+import Button from '@material-ui/core/Button';
 
 export default class Header extends Component {
   render() {
+    const { flags, setDifficulty, finishedGame, setRestartGame } = this.props;
     return (
       <AppBar position="static">
         <Toolbar>
           <Grid container alignItems="center" justify="center">
-            <Grid item style={{ flexGrow: 0.5 }}>
+            <Grid item style={{ flexGrow: 0.2 }}>
               <FormControl>
                 <InputLabel
                   style={{ color: 'white' }}
@@ -34,7 +38,23 @@ export default class Header extends Component {
                 </Select>
               </FormControl>
             </Grid>
-
+            <Grid item style={{ flexGrow: 0.2 }}>
+              {finishedGame ? (
+                <Button
+                  variant="extendedFab"
+                  aria-label="Restart"
+                  onClick={() => setRestartGame(true)}
+                >
+                  <RestartIcon
+                    color="primary"
+                    style={{ marginRight: '0.3em' }}
+                  />
+                  <Typography variant="button" color="primary">
+                    Restart
+                  </Typography>
+                </Button>
+              ) : null}
+            </Grid>
             <Avatar
               style={{
                 backgroundColor: 'transparent',
@@ -44,7 +64,7 @@ export default class Header extends Component {
               <FlagIcon />
             </Avatar>
             <Typography variant="h5" color="inherit">
-              0
+              {flags}
             </Typography>
             <Avatar
               style={{ backgroundColor: 'transparent' }}
@@ -61,3 +81,10 @@ export default class Header extends Component {
     );
   }
 }
+
+Header.propTypes = {
+  flags: propTypes.number.isRequired,
+  finishedGame: propTypes.bool.isRequired,
+  setDifficulty: propTypes.func.isRequired,
+  setRestartGame: propTypes.func.isRequired,
+};

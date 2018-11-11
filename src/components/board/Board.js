@@ -1,5 +1,7 @@
+/* eslint-disable react/forbid-prop-types */
 /* eslint-disable react/no-array-index-key */
 import React, { Component } from 'react';
+import propTypes from 'prop-types';
 import { Grid, Paper } from '@material-ui/core';
 import Cell from '../cell';
 import './Board.css';
@@ -17,7 +19,15 @@ export default class Board extends Component {
     this.initGame(9, 9, 10, 10);
   }
 
+  componentDidUpdate(prevProps) {
+    const { restartGame } = this.props;
+    if (prevProps.restartGame === false && restartGame === true) {
+      this.initGame(9, 9, 10, 10);
+    }
+  }
+
   initGame = (nX, nY, nMines, nFlags) => {
+    const { setFlags, setFinishedGame, setRestartGame } = this.props;
     const newGrid = this.createEmptyGrid(nX, nY);
     const minedCells = this.getMinedCells(nX, nY, nMines);
     const finalGrid = this.populateGridWithMines(
@@ -27,12 +37,14 @@ export default class Board extends Component {
       minedCells,
       nMines,
     );
-    console.log(finalGrid);
     this.setState({
       grid: finalGrid,
       finishedGame: false,
-      currentnMines: nMines,
+      flags: nFlags,
     });
+    setFlags(nFlags);
+    setFinishedGame(false);
+    setRestartGame(false);
   };
 
   getMinedCells = (nX, nY, nMines) => {
@@ -83,11 +95,11 @@ export default class Board extends Component {
       });
       grid[x][y].mined = true;
     }
-    const finalGrid = grid.map(row =>
+    /* const finalGrid = grid.map(row =>
       row.map(cell => ({ ...cell, clicked: true })),
     );
-    console.log(finalGrid);
-    return finalGrid;
+    console.log(finalGrid); */
+    return grid;
   };
 
   createEmptyGrid = (nX, nY) => {
@@ -100,6 +112,7 @@ export default class Board extends Component {
           y: j,
           mined: false,
           clicked: false,
+          flagged: false,
           adjacentMines: 0,
         });
       }
@@ -112,16 +125,68 @@ export default class Board extends Component {
     const { grid, finishedGame } = this.state;
     if (!finishedGame) {
       const cell = grid[x][y];
-      cell.clicked = true;
-      if (cell.mined) {
-        console.log('You Lose !');
-        this.handleLose();
+      if (!cell.flagged) {
+        if (cell.mined) {
+          this.handleLose();
+        } else if (cell.adjacentMines === 0 && cell.clicked === false) {
+          cell.clicked = true;
+          this.handleAdjacentCells(x, y);
+        } else if (cell.adjacentMines > 0) {
+          grid[x][y].clicked = true;
+          this.setState({
+            grid,
+          });
+        }
       }
-      this.setState({ grid });
     }
   };
 
-  handleLose = () => null;
+  handleAdjacentCells = (x, y) => {
+    const { grid } = this.state;
+    const nX = grid.length;
+    const nY = nX;
+    grid[x][y].clicked = true;
+    const adjacentCells = this.getAdjacentCells(nX, nY, x, y);
+    adjacentCells.forEach(pt => {
+      const i = pt[0];
+      const j = pt[1];
+      this.handleCellClick(i, j);
+    });
+    this.setState({
+      grid,
+    });
+  };
+
+  handleFlag = (x, y) => {
+    const { grid, finishedGame } = this.state;
+    let { flags } = this.state;
+    const { setFlags } = this.props;
+    if (!finishedGame) {
+      const cell = grid[x][y];
+      if (cell.flagged) {
+        cell.flagged = !cell.flagged;
+        flags += 1;
+      } else if (flags > 0) {
+        cell.flagged = !cell.flagged;
+        flags -= 1;
+      }
+      this.setState({
+        grid,
+        flags,
+      });
+      setFlags(flags);
+    }
+  };
+
+  handleLose = () => {
+    const { grid, finishedGame } = this.state;
+    const { setFinishedGame } = this.props;
+    const finalGrid = grid.map(row =>
+      row.map(cell => ({ ...cell, clicked: true })),
+    );
+    this.setState({ finishedGame: !finishedGame, grid: finalGrid });
+    setFinishedGame(true);
+  };
 
   render() {
     const { grid, flags, finishedGame } = this.state;
@@ -137,9 +202,11 @@ export default class Board extends Component {
                 y={cell.y}
                 mined={cell.mined}
                 clicked={cell.clicked}
+                flagged={cell.flagged}
                 adjacentMines={cell.adjacentMines}
                 finishedGame={finishedGame}
                 handleCellClick={this.handleCellClick}
+                handleFlag={this.handleFlag}
               />
             ))}
           </Grid>
@@ -148,3 +215,11 @@ export default class Board extends Component {
     );
   }
 }
+
+Board.propTypes = {
+  setFlags: propTypes.func.isRequired,
+  setFinishedGame: propTypes.func.isRequired,
+  restartGame: propTypes.bool.isRequired,
+  setRestartGame: propTypes.func.isRequired,
+  difficulty: propTypes.object.isRequired,
+};

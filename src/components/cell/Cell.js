@@ -5,9 +5,11 @@ import propTypes from 'prop-types';
 import './Cell.css';
 
 export default class Cell extends PureComponent {
-  componentDidUpdate() {
-    console.log(this.props.x, this.props.y);
-  }
+  colors = {
+    clicked: 'white',
+    cell: ['#3f51b5ce', '#3f51b5c0'],
+    mined: 'rgba(179, 38, 38, 0.719)',
+  };
 
   handleClick = e => {
     const { handleCellClick } = this.props;
@@ -16,8 +18,16 @@ export default class Cell extends PureComponent {
     handleCellClick(x, y);
   };
 
+  handleFlag = e => {
+    e.preventDefault();
+    const { handleFlag } = this.props;
+    const x = parseInt(e.currentTarget.getAttribute('x'), 10);
+    const y = parseInt(e.currentTarget.getAttribute('y'), 10);
+    handleFlag(x, y);
+  };
+
   render() {
-    const { x, y, mined, clicked, adjacentMines } = this.props;
+    const { x, y, mined, clicked, flagged, adjacentMines } = this.props;
     return (
       <Grid item>
         <Paper
@@ -27,11 +37,12 @@ export default class Cell extends PureComponent {
           style={
             clicked
               ? mined
-                ? { background: 'red' }
-                : { background: 'grey' }
-              : { background: 'light-grey' }
+                ? { background: this.colors.mined }
+                : { background: this.colors.clicked }
+              : { background: this.colors.cell[(x + y) % 2] }
           }
           onClick={this.handleClick}
+          onContextMenu={this.handleFlag}
         >
           {clicked ? (
             mined ? (
@@ -41,6 +52,10 @@ export default class Cell extends PureComponent {
             ) : adjacentMines > 0 ? (
               <div>{adjacentMines}</div>
             ) : null
+          ) : flagged ? (
+            <span role="img" aria-label="bomb">
+              🚩
+            </span>
           ) : null}
         </Paper>
       </Grid>
@@ -53,6 +68,8 @@ Cell.propTypes = {
   y: propTypes.number.isRequired,
   mined: propTypes.bool.isRequired,
   clicked: propTypes.bool.isRequired,
+  flagged: propTypes.bool.isRequired,
   handleCellClick: propTypes.func.isRequired,
+  handleFlag: propTypes.func.isRequired,
   adjacentMines: propTypes.number.isRequired,
 };
