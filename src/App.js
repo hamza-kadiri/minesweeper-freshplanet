@@ -9,7 +9,7 @@ class App extends Component {
     this.state = {
       finishedGame: false,
       restartGame: false,
-      difficulty: 1,
+      difficulty: 'easy',
       flags: 10,
     };
   }
@@ -26,6 +26,10 @@ class App extends Component {
     this.setState({ restartGame: bool });
   };
 
+  setDifficulty = string => {
+    this.setState({ difficulty: string });
+  };
+
   render() {
     const { difficulty, flags, finishedGame, restartGame } = this.state;
     return (
@@ -35,6 +39,8 @@ class App extends Component {
             flags={flags}
             finishedGame={finishedGame}
             setRestartGame={this.setRestartGame}
+            setDifficulty={this.setDifficulty}
+            difficulty={difficulty}
           />
         </div>
         <div className="Board">

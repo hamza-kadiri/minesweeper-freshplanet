@@ -16,17 +16,46 @@ export default class Board extends Component {
   }
 
   componentDidMount() {
-    this.initGame(9, 9, 10, 10);
+    this.initGame('easy');
   }
 
   componentDidUpdate(prevProps) {
-    const { restartGame } = this.props;
+    const { restartGame, difficulty } = this.props;
     if (prevProps.restartGame === false && restartGame === true) {
-      this.initGame(9, 9, 10, 10);
+      this.initGame(difficulty);
+    }
+    if (prevProps.difficulty !== difficulty) {
+      this.initGame(difficulty);
     }
   }
 
-  initGame = (nX, nY, nMines, nFlags) => {
+  initGame = difficulty => {
+    let [nX, nY, nMines, nFlags] = [0, 0, 0, 0];
+    switch (difficulty) {
+      case 'easy':
+        nX = 9;
+        nY = 9;
+        nMines = 10;
+        nFlags = 10;
+        break;
+      case 'medium':
+        nX = 12;
+        nY = 12;
+        nMines = 20;
+        nFlags = 20;
+        break;
+      case 'hard':
+        nX = 15;
+        nY = 15;
+        nMines = 40;
+        nFlags = 40;
+        break;
+      default:
+        nX = 9;
+        nY = 9;
+        nMines = 10;
+        nFlags = 10;
+    }
     const { setFlags, setFinishedGame, setRestartGame } = this.props;
     const newGrid = this.createEmptyGrid(nX, nY);
     const minedCells = this.getMinedCells(nX, nY, nMines);
@@ -95,10 +124,6 @@ export default class Board extends Component {
       });
       grid[x][y].mined = true;
     }
-    /* const finalGrid = grid.map(row =>
-      row.map(cell => ({ ...cell, clicked: true })),
-    );
-    console.log(finalGrid); */
     return grid;
   };
 
@@ -190,6 +215,7 @@ export default class Board extends Component {
 
   render() {
     const { grid, flags, finishedGame } = this.state;
+    const { difficulty } = this.props;
 
     return (
       <Grid item className="grid">
@@ -207,6 +233,7 @@ export default class Board extends Component {
                 finishedGame={finishedGame}
                 handleCellClick={this.handleCellClick}
                 handleFlag={this.handleFlag}
+                difficulty={difficulty}
               />
             ))}
           </Grid>
@@ -221,5 +248,5 @@ Board.propTypes = {
   setFinishedGame: propTypes.func.isRequired,
   restartGame: propTypes.bool.isRequired,
   setRestartGame: propTypes.func.isRequired,
-  difficulty: propTypes.object.isRequired,
+  difficulty: propTypes.string.isRequired,
 };

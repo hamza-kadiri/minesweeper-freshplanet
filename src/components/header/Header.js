@@ -17,7 +17,13 @@ import Button from '@material-ui/core/Button';
 
 export default class Header extends Component {
   render() {
-    const { flags, setDifficulty, finishedGame, setRestartGame } = this.props;
+    const {
+      flags,
+      setDifficulty,
+      finishedGame,
+      setRestartGame,
+      difficulty,
+    } = this.props;
     return (
       <AppBar position="static">
         <Toolbar>
@@ -31,10 +37,15 @@ export default class Header extends Component {
                 >
                   Difficulty
                 </InputLabel>
-                <Select style={{ color: 'white' }} value={1} name="difficulty">
-                  <MenuItem value={1}>Easy</MenuItem>
-                  <MenuItem value={2}>Medium</MenuItem>
-                  <MenuItem value={3}>Hard</MenuItem>
+                <Select
+                  style={{ color: 'white' }}
+                  value={difficulty}
+                  name="difficulty"
+                  onChange={e => setDifficulty(e.target.value)}
+                >
+                  <MenuItem value="easy">Easy</MenuItem>
+                  <MenuItem value="medium">Medium</MenuItem>
+                  <MenuItem value="hard">Hard</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -87,4 +98,5 @@ Header.propTypes = {
   finishedGame: propTypes.bool.isRequired,
   setDifficulty: propTypes.func.isRequired,
   setRestartGame: propTypes.func.isRequired,
+  difficulty: propTypes.string.isRequired,
 };
