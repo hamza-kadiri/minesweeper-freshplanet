@@ -14,7 +14,7 @@ export default class Timer extends Component {
   }
 
   componentDidMount() {
-    this.setState({ time: 0, start: Date.now() });
+    this.resetTimer();
     this.startTimer();
   }
 

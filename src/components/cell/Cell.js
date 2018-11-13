@@ -9,6 +9,7 @@ export default class Cell extends PureComponent {
     clicked: 'white',
     cell: ['#3f51b5ce', '#3f51b5c0'],
     mined: 'rgba(179, 38, 38, 0.719)',
+    adjacentMines: ['blue', 'green', 'red', 'red', 'red', 'red', 'red', 'red'],
   };
 
   style = {
@@ -122,10 +123,14 @@ export default class Cell extends PureComponent {
                 💣
               </span>
             ) : adjacentMines > 0 ? (
-              <div>{adjacentMines}</div>
+              <div
+                style={{ color: this.colors.adjacentMines[adjacentMines - 1] }}
+              >
+                {adjacentMines}
+              </div>
             ) : null
           ) : flagged ? (
-            <span role="img" aria-label="bomb">
+            <span role="img" aria-label="flag">
               🚩
             </span>
           ) : null}

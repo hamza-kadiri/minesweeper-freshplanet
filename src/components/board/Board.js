@@ -36,7 +36,6 @@ export default class Board extends Component {
 
   componentDidUpdate(prevProps) {
     const { restartGame, difficulty } = this.props;
-    const { minedCells, flaggedCells } = this.state;
     if (prevProps.restartGame === false && restartGame === true) {
       this.initGame(difficulty);
     }
@@ -93,6 +92,25 @@ export default class Board extends Component {
     setRestartGame(false);
   };
 
+  createEmptyGrid = (nX, nY) => {
+    const newGrid = [];
+    for (let i = 0; i < nX; i += 1) {
+      const subGrid = [];
+      for (let j = 0; j < nY; j += 1) {
+        subGrid.push({
+          x: i,
+          y: j,
+          mined: false,
+          clicked: false,
+          flagged: false,
+          adjacentMines: 0,
+        });
+      }
+      newGrid.push(subGrid);
+    }
+    return newGrid;
+  };
+
   getMinedCells = (nX, nY, nMines) => {
     const minedCells = [];
     while (minedCells.length < nMines) {
@@ -111,6 +129,22 @@ export default class Board extends Component {
     return Math.floor(Math.random() * (max - min)) + min;
   };
 
+  populateGridWithMines = (nX, nY, initialGrid, minedCells) => {
+    const grid = initialGrid;
+    for (let i = 0; i < minedCells.length; i += 1) {
+      const x = minedCells[i][0];
+      const y = minedCells[i][1];
+      const adjacentCells = this.getAdjacentCells(nX, nY, x, y);
+      adjacentCells.forEach(pt => {
+        const z = pt[0];
+        const w = pt[1];
+        grid[z][w].adjacentMines += 1;
+      });
+      grid[x][y].mined = true;
+    }
+    return grid;
+  };
+
   getAdjacentCells = (nX, nY, x, y) => {
     let adjacentCells = [
       [x - 1, y - 1],
@@ -126,41 +160,6 @@ export default class Board extends Component {
       pt => pt[0] >= 0 && pt[1] >= 0 && pt[0] < nX && pt[1] < nY,
     );
     return adjacentCells;
-  };
-
-  populateGridWithMines = (nX, nY, initialGrid, minedCells, nMines) => {
-    const grid = initialGrid;
-    for (let i = 0; i < nMines; i += 1) {
-      const x = minedCells[i][0];
-      const y = minedCells[i][1];
-      const adjacentCells = this.getAdjacentCells(nX, nY, x, y);
-      adjacentCells.forEach(pt => {
-        const z = pt[0];
-        const w = pt[1];
-        grid[z][w].adjacentMines += 1;
-      });
-      grid[x][y].mined = true;
-    }
-    return grid;
-  };
-
-  createEmptyGrid = (nX, nY) => {
-    const newGrid = [];
-    for (let i = 0; i < nX; i += 1) {
-      const subGrid = [];
-      for (let j = 0; j < nY; j += 1) {
-        subGrid.push({
-          x: i,
-          y: j,
-          mined: false,
-          clicked: false,
-          flagged: false,
-          adjacentMines: 0,
-        });
-      }
-      newGrid.push(subGrid);
-    }
-    return newGrid;
   };
 
   handleCellClick = (x, y) => {
@@ -252,7 +251,6 @@ export default class Board extends Component {
   };
 
   handleWin = async () => {
-    const { winningGif } = this.state;
     this.handleFinish();
     this.setState({ won: true });
     const response = await fetch(
