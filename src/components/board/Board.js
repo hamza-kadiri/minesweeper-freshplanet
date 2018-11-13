@@ -2,7 +2,7 @@
 /* eslint-disable react/no-array-index-key */
 import React, { Component } from 'react';
 import propTypes from 'prop-types';
-import { Grid, Paper } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import './Board.css';
@@ -13,6 +13,7 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Slide from '@material-ui/core/Slide';
 import Button from '@material-ui/core/Button';
+import request from 'request';
 import Cell from '../cell';
 
 function Transition(props) {
@@ -27,11 +28,13 @@ export default class Board extends Component {
       flaggedCells: [],
       testing: false,
       won: false,
+      winningGif: '',
     };
   }
 
   componentDidMount() {
     this.initGame('easy');
+    this.handleWin();
   }
 
   componentDidUpdate(prevProps) {
@@ -251,9 +254,17 @@ export default class Board extends Component {
     setFinishedGame(true);
   };
 
-  handleWin = () => {
+  handleWin = async () => {
+    const { winningGif } = this.state;
     this.handleFinish();
     this.setState({ won: true });
+    const response = await fetch(
+      'http://api.giphy.com/v1/gifs/search?q=you+did+it&api_key=RV173xTYbLny9laAlld5t3MpkcJxPS26',
+    );
+    const body = await response.json();
+    const { data } = body;
+    const index = this.getRandomInt(0, 25);
+    this.setState({ winningGif: data[index].images.fixed_height.url });
   };
 
   handleChangeTesting = () => {
@@ -262,7 +273,7 @@ export default class Board extends Component {
   };
 
   render() {
-    const { grid, finishedGame, testing, won } = this.state;
+    const { grid, finishedGame, testing, won, winningGif } = this.state;
     const { difficulty, setRestartGame } = this.props;
 
     return (
@@ -309,12 +320,18 @@ export default class Board extends Component {
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle id="alert-dialog-slide-title">
-            {'You won, the game, Congratulations'}
+            {'You won ! Congratulations !'}
           </DialogTitle>
           <DialogContent>
-            <DialogContentText id="alert-dialog-slide-description">
-              Restart the game ?
-            </DialogContentText>
+            <img
+              src={winningGif}
+              alt="winningGif"
+              style={{
+                display: 'block',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+              }}
+            />
           </DialogContent>
           <DialogActions>
             <Button
