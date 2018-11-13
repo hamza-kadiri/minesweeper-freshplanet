@@ -11,48 +11,40 @@ export default class Cell extends PureComponent {
     mined: 'rgba(179, 38, 38, 0.719)',
   };
 
+  style = {
+    common: {
+      border: '1px solid #3f51b5',
+      float: 'left',
+      marginRight: -1,
+      marginTop: -1,
+      padding: 0,
+      textAlign: 'center',
+      cursor: 'pointer',
+      fontWeight: 'bold',
+    },
+  };
+
   cell = {
     easy: {
-      border: '1px solid #3f51b5',
-      float: 'left',
+      ...this.style.common,
       fontSize: 22,
-      fontWeight: 'bold',
       lineHeight: '34px',
       height: 34,
-      marginRight: -1,
-      marginTop: -1,
-      padding: 0,
-      textAlign: 'center',
       width: 34,
-      cursor: 'pointer',
     },
     medium: {
-      border: '1px solid #3f51b5',
-      float: 'left',
+      ...this.style.common,
       fontSize: 19,
-      fontWeight: 'bold',
       lineHeight: '27px',
       height: 27,
-      marginRight: -1,
-      marginTop: -1,
-      padding: 0,
-      textAlign: 'center',
       width: 27,
-      cursor: 'pointer',
     },
     hard: {
-      border: '1px solid #3f51b5',
-      float: 'left',
+      ...this.style.common,
       fontSize: 16,
-      fontWeight: 'bold',
       lineHeight: '22px',
       height: 22,
-      marginRight: -1,
-      marginTop: -1,
-      padding: 0,
-      textAlign: 'center',
       width: 22,
-      cursor: 'pointer',
     },
   };
 
@@ -93,6 +85,7 @@ export default class Cell extends PureComponent {
       flagged,
       adjacentMines,
       difficulty,
+      testing,
     } = this.props;
     return (
       <Grid item>
@@ -110,6 +103,11 @@ export default class Cell extends PureComponent {
                     ...this.getStyle(difficulty),
                     background: this.colors.clicked,
                   }
+              : mined && testing
+              ? {
+                  ...this.getStyle(difficulty),
+                  background: this.colors.mined,
+                }
               : {
                   ...this.getStyle(difficulty),
                   background: this.colors.cell[(x + y) % 2],
@@ -147,4 +145,5 @@ Cell.propTypes = {
   handleFlag: propTypes.func.isRequired,
   adjacentMines: propTypes.number.isRequired,
   difficulty: propTypes.string.isRequired,
+  testing: propTypes.bool.isRequired,
 };

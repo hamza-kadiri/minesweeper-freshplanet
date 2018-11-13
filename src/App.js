@@ -28,6 +28,7 @@ class App extends Component {
 
   setDifficulty = string => {
     this.setState({ difficulty: string });
+    this.setRestartGame(true);
   };
 
   render() {
@@ -41,6 +42,7 @@ class App extends Component {
             setRestartGame={this.setRestartGame}
             setDifficulty={this.setDifficulty}
             difficulty={difficulty}
+            restartGame={restartGame}
           />
         </div>
         <div className="Board">

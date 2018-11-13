@@ -3,15 +3,30 @@
 import React, { Component } from 'react';
 import propTypes from 'prop-types';
 import { Grid, Paper } from '@material-ui/core';
-import Cell from '../cell';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 import './Board.css';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import Slide from '@material-ui/core/Slide';
+import Button from '@material-ui/core/Button';
+import Cell from '../cell';
 
+function Transition(props) {
+  return <Slide direction="up" {...props} />;
+}
 export default class Board extends Component {
   constructor(props) {
     super(props);
     this.state = {
       grid: [],
       flags: 0,
+      flaggedCells: [],
+      testing: false,
+      won: false,
     };
   }
 
@@ -21,6 +36,7 @@ export default class Board extends Component {
 
   componentDidUpdate(prevProps) {
     const { restartGame, difficulty } = this.props;
+    const { minedCells, flaggedCells } = this.state;
     if (prevProps.restartGame === false && restartGame === true) {
       this.initGame(difficulty);
     }
@@ -70,6 +86,7 @@ export default class Board extends Component {
       grid: finalGrid,
       finishedGame: false,
       flags: nFlags,
+      minedCells,
     });
     setFlags(nFlags);
     setFinishedGame(false);
@@ -148,19 +165,28 @@ export default class Board extends Component {
 
   handleCellClick = (x, y) => {
     const { grid, finishedGame } = this.state;
+    let unClickedCells = [];
     if (!finishedGame) {
       const cell = grid[x][y];
       if (!cell.flagged) {
         if (cell.mined) {
-          this.handleLose();
+          this.handleFinish();
         } else if (cell.adjacentMines === 0 && cell.clicked === false) {
           cell.clicked = true;
           this.handleAdjacentCells(x, y);
-        } else if (cell.adjacentMines > 0) {
-          grid[x][y].clicked = true;
+        } else if (cell.adjacentMines > 0 && cell.clicked === false) {
+          cell.clicked = true;
           this.setState({
             grid,
           });
+          unClickedCells = grid.map(row => row.filter(c => !c.clicked));
+          if (
+            unClickedCells.every(row =>
+              row.every(c => c.mined || c.adjacentMines === 0),
+            )
+          ) {
+            this.handleWin();
+          }
         }
       }
     }
@@ -175,7 +201,9 @@ export default class Board extends Component {
     adjacentCells.forEach(pt => {
       const i = pt[0];
       const j = pt[1];
-      this.handleCellClick(i, j);
+      if (!grid[i][j].clicked) {
+        this.handleCellClick(i, j);
+      }
     });
     this.setState({
       grid,
@@ -183,27 +211,37 @@ export default class Board extends Component {
   };
 
   handleFlag = (x, y) => {
-    const { grid, finishedGame } = this.state;
+    const { grid, finishedGame, minedCells } = this.state;
+    let { flaggedCells } = this.state;
     let { flags } = this.state;
     const { setFlags } = this.props;
     if (!finishedGame) {
       const cell = grid[x][y];
-      if (cell.flagged) {
-        cell.flagged = !cell.flagged;
-        flags += 1;
-      } else if (flags > 0) {
-        cell.flagged = !cell.flagged;
-        flags -= 1;
+      if (!cell.clicked) {
+        if (cell.flagged) {
+          cell.flagged = !cell.flagged;
+          flaggedCells = flaggedCells.filter(c => !c.flagged);
+          flags += 1;
+        } else if (flags > 0) {
+          cell.flagged = !cell.flagged;
+          flaggedCells.push(cell);
+          flags -= 1;
+        }
+        if (flags === 0) {
+          if (minedCells.filter(c => !grid[c[0]][c[1]].flagged).length === 0) {
+            this.handleWin();
+          }
+        }
+        this.setState({
+          grid,
+          flags,
+        });
+        setFlags(flags);
       }
-      this.setState({
-        grid,
-        flags,
-      });
-      setFlags(flags);
     }
   };
 
-  handleLose = () => {
+  handleFinish = () => {
     const { grid, finishedGame } = this.state;
     const { setFinishedGame } = this.props;
     const finalGrid = grid.map(row =>
@@ -213,32 +251,90 @@ export default class Board extends Component {
     setFinishedGame(true);
   };
 
+  handleWin = () => {
+    this.handleFinish();
+    this.setState({ won: true });
+  };
+
+  handleChangeTesting = () => {
+    const { testing } = this.state;
+    this.setState({ testing: !testing });
+  };
+
   render() {
-    const { grid, flags, finishedGame } = this.state;
-    const { difficulty } = this.props;
+    const { grid, finishedGame, testing, won } = this.state;
+    const { difficulty, setRestartGame } = this.props;
 
     return (
-      <Grid item className="grid">
-        {grid.map((row, i) => (
-          <Grid container key={`row-${i}`} justify="center" spacing={0}>
-            {row.map((cell, j) => (
-              <Cell
-                key={`row-${cell.x}-${cell.y}`}
-                x={cell.x}
-                y={cell.y}
-                mined={cell.mined}
-                clicked={cell.clicked}
-                flagged={cell.flagged}
-                adjacentMines={cell.adjacentMines}
-                finishedGame={finishedGame}
-                handleCellClick={this.handleCellClick}
-                handleFlag={this.handleFlag}
-                difficulty={difficulty}
-              />
-            ))}
-          </Grid>
-        ))}
-      </Grid>
+      <React.Fragment>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={testing}
+              onChange={this.handleChangeTesting}
+              value="checkedB"
+              color="primary"
+            />
+          }
+          label="Test mode"
+        />
+        <Grid item className="grid">
+          {grid.map((row, i) => (
+            <Grid container key={`row-${i}`} justify="center" spacing={0}>
+              {row.map((cell, j) => (
+                <Cell
+                  key={`row-${cell.x}-${cell.y}`}
+                  x={cell.x}
+                  y={cell.y}
+                  mined={cell.mined}
+                  clicked={cell.clicked}
+                  flagged={cell.flagged}
+                  adjacentMines={cell.adjacentMines}
+                  finishedGame={finishedGame}
+                  handleCellClick={this.handleCellClick}
+                  handleFlag={this.handleFlag}
+                  difficulty={difficulty}
+                  testing={testing}
+                />
+              ))}
+            </Grid>
+          ))}
+        </Grid>
+        <Dialog
+          open={won}
+          TransitionComponent={Transition}
+          keepMounted
+          onClose={this.handleClose}
+          aria-labelledby="alert-dialog-slide-title"
+          aria-describedby="alert-dialog-slide-description"
+        >
+          <DialogTitle id="alert-dialog-slide-title">
+            {'You won, the game, Congratulations'}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              Restart the game ?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => this.setState({ won: false })}
+              color="primary"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={e => {
+                this.setState({ won: false });
+                setRestartGame(true);
+              }}
+              color="primary"
+            >
+              Restart
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </React.Fragment>
     );
   }
 }

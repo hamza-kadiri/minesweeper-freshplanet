@@ -5,7 +5,6 @@ import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import FlagIcon from '@material-ui/icons/Flag';
-import TimerIcon from '@material-ui/icons/Timer';
 import RestartIcon from '@material-ui/icons/Autorenew';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -13,7 +12,8 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Grid from '@material-ui/core/Grid';
 import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import Timer from '../timer/Timer';
 
 export default class Header extends Component {
   render() {
@@ -23,12 +23,13 @@ export default class Header extends Component {
       finishedGame,
       setRestartGame,
       difficulty,
+      restartGame,
     } = this.props;
     return (
       <AppBar position="static">
         <Toolbar>
           <Grid container alignItems="center" justify="center">
-            <Grid item style={{ flexGrow: 0.2 }}>
+            <Grid item>
               <FormControl>
                 <InputLabel
                   style={{ color: 'white' }}
@@ -49,23 +50,14 @@ export default class Header extends Component {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item style={{ flexGrow: 0.2 }}>
-              {finishedGame ? (
-                <Button
-                  variant="extendedFab"
-                  aria-label="Restart"
-                  onClick={() => setRestartGame(true)}
-                >
-                  <RestartIcon
-                    color="primary"
-                    style={{ marginRight: '0.3em' }}
-                  />
-                  <Typography variant="button" color="primary">
-                    Restart
-                  </Typography>
-                </Button>
-              ) : null}
-            </Grid>
+
+            <IconButton
+              aria-label="Restart"
+              onClick={() => setRestartGame(true)}
+            >
+              <RestartIcon style={{ color: 'white', marginRight: '0.3em' }} />
+            </IconButton>
+
             <Avatar
               style={{
                 backgroundColor: 'transparent',
@@ -77,15 +69,7 @@ export default class Header extends Component {
             <Typography variant="h5" color="inherit">
               {flags}
             </Typography>
-            <Avatar
-              style={{ backgroundColor: 'transparent' }}
-              aria-label="Timer"
-            >
-              <TimerIcon />
-            </Avatar>
-            <Typography variant="h5" color="inherit">
-              0
-            </Typography>
+            <Timer finishedGame={finishedGame} restartGame={restartGame} />
           </Grid>
         </Toolbar>
       </AppBar>
@@ -98,5 +82,6 @@ Header.propTypes = {
   finishedGame: propTypes.bool.isRequired,
   setDifficulty: propTypes.func.isRequired,
   setRestartGame: propTypes.func.isRequired,
+  restartGame: propTypes.bool.isRequired,
   difficulty: propTypes.string.isRequired,
 };
